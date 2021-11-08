@@ -1,4 +1,4 @@
-package io.github.winx64.classicbridge
+package dev.winx64.classicbridge
 
 class ClassicBridge {
 
