@@ -2,13 +2,16 @@ plugins {
     kotlin("jvm") version "1.5.31"
 }
 
-group = "io.github.winx64"
-version = "1.0-SNAPSHOT"
 description = "ClassicBridge"
 
-repositories {
-    mavenLocal()
-    mavenCentral()
+allprojects {
+    group = "dev.winx64"
+    version = "1.0-SNAPSHOT"
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
 }
 
 dependencies {
