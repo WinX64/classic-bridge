@@ -44,7 +44,7 @@ enum class ProtocolExtension(val identifier: String, val supportedVersion: Int) 
     EXT_ENTITY_POSITIONS("ExtEntityPositions", 1),
     TWO_WAY_PING("TwoWayPing", 1),
 
-    //INVENTORY_ORDER - The premium client has no support,
+    //INVENTORY_ORDER - The premium client has no support
 
     INSTANT_MOTD("InstantMOTD", 1),
 
