@@ -6,8 +6,6 @@ data class ExtensionSettings(private val mutuallySupportedExtensions: Map<Extens
 
     fun supports(extensionType: ExtensionType, version: Int = 1) = mutuallySupportedExtensions[extensionType] == version
 
-    fun getSupportedVersion(extensionType: ExtensionType) = mutuallySupportedExtensions[extensionType]
-
     class Builder {
 
         private val mutuallySupportedExtensions = mutableMapOf<ExtensionType, Int>()
@@ -20,5 +18,9 @@ data class ExtensionSettings(private val mutuallySupportedExtensions: Map<Extens
         }
 
         fun build() = ExtensionSettings(mutuallySupportedExtensions)
+    }
+
+    companion object {
+        val EMPTY = ExtensionSettings(emptyMap())
     }
 }
