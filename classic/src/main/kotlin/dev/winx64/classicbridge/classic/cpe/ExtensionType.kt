@@ -4,7 +4,7 @@ package dev.winx64.classicbridge.classic.cpe
  * Classic Protocol Extensions supported by ClassicBridge
  * For an extension to be supported, it must be fully supported by the premium client
  */
-enum class ProtocolExtension(val identifier: String, val supportedVersion: Int) {
+enum class ExtensionType(val identifier: String, val supportedVersion: Int) {
     CLICK_DISTANCE("ClickDistance", 1),
     CUSTOM_BLOCKS("CustomBlocks", 1),
     HELD_BLOCK("HeldBlock", 1),
