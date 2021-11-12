@@ -60,6 +60,11 @@ enum class ExtensionType(val identifier: String, val supportedVersion: Int) {
     //CUSTOM_MODELS_V2 - The premium client has no support
     ;
 
+    infix fun v(version: Int): Pair<ExtensionType, Int> {
+        require(version == supportedVersion) { "Expected version $supportedVersion for $name, got $version" }
+        return Pair(this, version)
+    }
+
     companion object {
         private val BY_IDENTIFIER = values().associateBy { it.name }
 

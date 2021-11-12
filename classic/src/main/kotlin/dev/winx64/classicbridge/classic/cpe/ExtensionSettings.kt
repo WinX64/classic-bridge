@@ -1,17 +1,19 @@
 package dev.winx64.classicbridge.classic.cpe
 
-data class ExtensionSettings(private val mutuallySupportedExtensions: Map<ProtocolExtension, Int>) {
+data class ExtensionSettings(private val mutuallySupportedExtensions: Map<ExtensionType, Int>) {
 
-    fun supports(extension: ProtocolExtension, version: Int = 1) = mutuallySupportedExtensions[extension] == version
+    fun supports(extension: Pair<ExtensionType, Int>) = supports(extension.first, extension.second)
 
-    fun getSupportedVersion(extension: ProtocolExtension) = mutuallySupportedExtensions[extension]
+    fun supports(extensionType: ExtensionType, version: Int = 1) = mutuallySupportedExtensions[extensionType] == version
+
+    fun getSupportedVersion(extensionType: ExtensionType) = mutuallySupportedExtensions[extensionType]
 
     class Builder {
 
-        private val mutuallySupportedExtensions = mutableMapOf<ProtocolExtension, Int>()
+        private val mutuallySupportedExtensions = mutableMapOf<ExtensionType, Int>()
 
         fun include(extensionName: String, version: Int) {
-            val extension = ProtocolExtension.parseProtocolExtension(extensionName) ?: return
+            val extension = ExtensionType.parseProtocolExtension(extensionName) ?: return
             if (extension.supportedVersion == version) {
                 mutuallySupportedExtensions += Pair(extension, version)
             }
