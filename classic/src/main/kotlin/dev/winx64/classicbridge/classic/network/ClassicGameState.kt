@@ -4,8 +4,7 @@ import dev.winx64.classicbridge.classic.cpe.ExtensionType.EXT_ENTITY_POSITIONS
 import dev.winx64.classicbridge.classic.network.callback.ClassicLoginPacketCallback
 import dev.winx64.classicbridge.classic.network.callback.ClassicPacketCallback
 import dev.winx64.classicbridge.classic.network.callback.ClassicPlayPacketCallback
-import dev.winx64.classicbridge.classic.network.clientbound.login.DisconnectPlayerClientboundLoginPacket
-import dev.winx64.classicbridge.classic.network.clientbound.login.ServerIdentificationClientboundLoginPacket
+import dev.winx64.classicbridge.classic.network.clientbound.login.*
 import dev.winx64.classicbridge.classic.network.clientbound.login.cpe.ExtensionEntryClientboundLoginPacket
 import dev.winx64.classicbridge.classic.network.clientbound.login.cpe.ExtensionInfoClientboundLoginPacket
 import dev.winx64.classicbridge.classic.network.clientbound.play.*
@@ -26,6 +25,7 @@ enum class ClassicGameState(
         incomingPackets<ClassicLoginPacketCallback> {
             //Standard protocol
             fixedSize(0x00, ::ServerIdentificationClientboundLoginPacket, 130)
+            fixedSize(0x01, ::PingClientboundLoginPacket, 0)
             fixedSize(0x0E, ::DisconnectPlayerClientboundLoginPacket, 64)
 
             //Classic Protocol Extension
