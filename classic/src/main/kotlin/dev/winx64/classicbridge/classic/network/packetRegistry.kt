@@ -2,65 +2,54 @@ package dev.winx64.classicbridge.classic.network
 
 import dev.winx64.classicbridge.classic.cpe.ExtensionSettings
 import dev.winx64.classicbridge.classic.cpe.ExtensionType
-import dev.winx64.classicbridge.classic.network.callback.ClassicPacketCallback
 import io.netty.buffer.ByteBuf
 import kotlin.reflect.KClass
 
-class InboundPacketRegistry<C : ClassicPacketCallback>(
-    private val registeredPackets: Map<Int, Pair<PacketConstructor<C>, SizeCalculator>>
+class InboundPacketRegistry(
+    private val registeredPackets: Map<Int, InboundPacketRegistration>
 ) {
-    fun getPacketSizeCalculator(packetId: Int) = registeredPackets[packetId]?.second
-        ?: throw IllegalArgumentException("No size calculator for packet id $packetId")
+    fun getRegistration(packetId: Int) = registeredPackets[packetId]
+        ?: throw IllegalArgumentException("No registration for packet id ${packetId.hexString()} ($packetId)")
 
-    fun getPacketConstructor(packetId: Int) = registeredPackets[packetId]?.first
-        ?: throw IllegalArgumentException("No constructor for packet id $packetId")
-
-    class DSL<C : ClassicPacketCallback>(
-        private val map: MutableMap<Int, Pair<PacketConstructor<C>, SizeCalculator>>
+    class DSL(
+        private val map: MutableMap<Int, InboundPacketRegistration>
     ) {
         fun fixedSize(
             id: Int,
-            packetConstructor: PacketConstructor<C>,
+            packetConstructor: PacketConstructor,
             size: Int
         ) {
-            map[id] = Pair(packetConstructor) { size }
+            map[id] = InboundPacketRegistration(packetConstructor) { size }
         }
 
         fun dynamicSize(
             id: Int,
-            packetConstructor: PacketConstructor<C>,
+            packetConstructor: PacketConstructor,
             requiredExtension: Pair<ExtensionType, Int>,
             extendedSize: Int,
             normalSize: Int
         ) {
-            map[id] = Pair(packetConstructor) {
+            map[id] = InboundPacketRegistration(packetConstructor) {
                 if (it.supports(requiredExtension)) extendedSize else normalSize
             }
         }
     }
 }
 
-typealias PacketConstructor<C> = (ByteBuf, ExtensionSettings) -> ClassicInboundPacket<C>
-
-typealias SizeCalculator = (ExtensionSettings) -> Int
-
 class OutboundPacketRegistry(
-    private val registeredPackets: Map<KClass<out ClassicOutboundPacket>, Pair<Int, SizeCalculator>>
+    private val registeredPackets: Map<PacketClass, OutboundPacketRegistration>
 ) {
-    fun getPacketId(packetClass: KClass<out ClassicOutboundPacket>) = registeredPackets[packetClass]?.first
-        ?: throw IllegalArgumentException("No packet id for class ${packetClass.simpleName}")
+    fun getRegistration(packetClass: PacketClass) = registeredPackets[packetClass]
+        ?: throw IllegalArgumentException("No registration for packet class ${packetClass.simpleName}")
 
-    fun getPacketSizeCalculator(packetClass: KClass<out ClassicOutboundPacket>) = registeredPackets[packetClass]?.second
-        ?: throw java.lang.IllegalArgumentException("No packet size calculator for class ${packetClass.simpleName}")
-
-    class DSL(private val map: MutableMap<KClass<out ClassicOutboundPacket>, Pair<Int, SizeCalculator>>) {
+    class DSL(private val map: MutableMap<PacketClass, OutboundPacketRegistration>) {
 
         fun fixedSize(
             id: Int,
             packetClass: KClass<out ClassicOutboundPacket>,
             size: Int
         ) {
-            map[packetClass] = Pair(id) { size }
+            map[packetClass] = OutboundPacketRegistration(id) { size }
         }
 
         fun dynamicSize(
@@ -70,17 +59,31 @@ class OutboundPacketRegistry(
             extendedSize: Int,
             normalSize: Int
         ) {
-            map[packetClass] = Pair(id) {
+            map[packetClass] = OutboundPacketRegistration(id) {
                 if (it.supports(requiredExtension)) extendedSize else normalSize
             }
         }
     }
 }
 
-fun <C : ClassicPacketCallback> incomingPackets(
-    block: InboundPacketRegistry.DSL<C>.() -> Unit
-): InboundPacketRegistry<C> {
-    val map = mutableMapOf<Int, Pair<PacketConstructor<C>, SizeCalculator>>()
+typealias PacketConstructor = (ByteBuf, ExtensionSettings) -> ClassicInboundPacket
+
+typealias SizeCalculator = (ExtensionSettings) -> Int
+
+typealias PacketClass = KClass<out ClassicOutboundPacket>
+
+data class InboundPacketRegistration(
+    val packetConstructor: PacketConstructor,
+    val sizeCalculator: SizeCalculator
+)
+
+data class OutboundPacketRegistration(
+    val packetId: Int,
+    val sizeCalculator: SizeCalculator
+)
+
+fun incomingPackets(block: InboundPacketRegistry.DSL.() -> Unit): InboundPacketRegistry {
+    val map = mutableMapOf<Int, InboundPacketRegistration>()
 
     InboundPacketRegistry.DSL(map).also(block).also {
         return InboundPacketRegistry(map)
@@ -88,7 +91,7 @@ fun <C : ClassicPacketCallback> incomingPackets(
 }
 
 fun outgoingPackets(block: OutboundPacketRegistry.DSL.() -> Unit): OutboundPacketRegistry {
-    val map = mutableMapOf<KClass<out ClassicOutboundPacket>, Pair<Int, SizeCalculator>>()
+    val map = mutableMapOf<PacketClass, OutboundPacketRegistration>()
 
     OutboundPacketRegistry.DSL(map).also(block).also {
         return OutboundPacketRegistry(map)
