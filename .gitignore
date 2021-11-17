@@ -6,3 +6,4 @@ target/
 .settings/
 .idea/
 .gradle/
+build/
